@@ -372,7 +372,7 @@ void realListDump(List* list, const char* filename, const char* graph_filename)
     }
     //For last
     fprintf(graph_file, "\"%p\" [label=\"{%lg|{%d|%zu|%zu}}\", ", &referTo(list->capacity - 1),
-            referTo(list->capacity - 1).value, referTo(list->capacity - 1).prev, list->capacity -1, referTo(list->capacity).next); 
+            referTo(list->capacity - 1).value, referTo(list->capacity - 1).prev, list->capacity -1, 0); 
     fprintf(graph_file, "fillcolor=%s]\n", STATUS_COLORS[(int)referTo(list->capacity - 1).status]);
 
     //Just fucking physical pointers
