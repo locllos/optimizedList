@@ -10,41 +10,36 @@ const char* STATUS_COLORS[] =
     "green"
 };
 
-void Copy(void* value_to, const void* value_from, const size_t elem_size) 
+
+void initNode(List* list, size_t idx)
 {
-    for (size_t i = 0; i < elem_size; ++i) 
-        *((uint8_t*)value_to + i) = *((uint8_t*)value_from + i);
+    referTo(idx).next = 0;
+    referTo(idx).prev = 0;
+    referTo(idx).value = NAN;
+    referTo(idx).status = NEW;
 }
 
-void initNode(List* list, virtual_ptr node)
+void initNode(List* list, size_t idx, elem_t value)
 {
-    referTo(node).next = 0;
-    referTo(node).prev = 0;
-    referTo(node).value = NAN;
-    referTo(node).status = NEW;
+    referTo(idx).next = 0;
+    referTo(idx).prev = 0;
+    referTo(idx).value = value;
+    referTo(idx).status = NEW;
 }
 
-void initNode(List* list, virtual_ptr node, elem_t value)
+void initNode(List* list, size_t idx, size_t prev, size_t next, elem_t value)
 {
-    referTo(node).next = 0;
-    referTo(node).prev = 0;
-    referTo(node).value = value;
-    referTo(node).status = NEW;
-}
-
-void initNode(List* list, virtual_ptr node, virtual_ptr prev, virtual_ptr next, elem_t value)
-{
-    referTo(node).prev = prev;
-    referTo(node).next = next;
-    referTo(node).value = value;
-    referTo(node).status = NEW;
+    referTo(idx).prev = prev;
+    referTo(idx).next = next;
+    referTo(idx).value = value;
+    referTo(idx).status = NEW;
 }
 
 void constructList(List* list, size_t start_capacity)
 {
     list->size = 0;
     list->capacity = start_capacity + 1;
-    list->free = 1;
+    list->free_head = 1;
     list->is_optimized = false;
     list->head = 1;
     list->tail = 1;
@@ -53,14 +48,14 @@ void constructList(List* list, size_t start_capacity)
     initNode(list, 0, 0, 0, NAN);
     referTo(0).status = OK;
 
-    virtual_ptr cur_node = 1;
-    for (; cur_node < list->capacity; ++cur_node)
+    size_t cur_idx = 1;
+    for (; cur_idx < list->capacity; ++cur_idx)
     {
-        initNode(list, cur_node, -1, cur_node + 1, NAN);
-        referTo(cur_node).status = FREE;
+        initNode(list, cur_idx, -1, cur_idx + 1, NAN);
+        referTo(cur_idx).status = FREE;
     }
-    initNode(list, cur_node - 1, -1, 0, NAN);
-    referTo(cur_node - 1).status = FREE;
+    initNode(list, cur_idx - 1, -1, 0, NAN);
+    referTo(cur_idx - 1).status = FREE;
 }
 
 List* newList(size_t start_capacity)
@@ -72,70 +67,69 @@ List* newList(size_t start_capacity)
     return list;
 }
 
-void freeMemory(List* list, virtual_ptr deletable_node)
+void freeNode(List* list, size_t deletable_node)
 {
-    initNode(list, deletable_node, -1, list->free, NAN);
-
+    initNode(list, deletable_node, -1, list->free_head, NAN);
     referTo(deletable_node).status = FREE;
 
-    list->free = deletable_node;
+    list->free_head = deletable_node;
 }
 
-virtual_ptr getFirst(List* list)
+size_t getFirst(List* list)
 {
     return list->head;
 }
 
-virtual_ptr getLast(List* list)
+size_t getLast(List* list)
 {
     return list->tail;
 }
 
-virtual_ptr getFreeSpace(List* list)
+size_t getFreeNode(List* list)
 {   
     assert(list->size + 1 < list->capacity);
 
-    virtual_ptr free = list->free;
+    size_t free_head = list->free_head;
 
-    list->free = list->buffer[free].next;
+    list->free_head = referTo(free_head).next;
 
-    return free;
+    return free_head;
 }
 
-virtual_ptr getVirtualAddressByPos(List* list, size_t pos)
+size_t getIndexByNumber(List* list, size_t number)
 {
-    //Можно применить "оптимизацию", если pos > size / 2, то пробегаться с конца
-    if (list->is_optimized) return pos;
+    if (list->is_optimized) return number;
 
-    virtual_ptr cur_node = list->head;
-    for (size_t i = 1; i < pos; ++i)
+    size_t cur_idx = list->head;
+    for (size_t i = 1; i < number; ++i)
     {
-        cur_node = referTo(cur_node).next;
+        cur_idx = referTo(cur_idx).next;
     }
-    return cur_node;
+    return cur_idx;
 }
 
-virtual_ptr insertBetween(List* list, virtual_ptr node_before, virtual_ptr node_after, elem_t value)
+size_t insertBetween(List* list, size_t idx_before, size_t idx_after, elem_t value)
 {   
+    //!assert(list_ok(list))
     LIST_ASSERT(list);
-    assert(node_before >= 0);
-    assert(node_before < list->capacity);
-    assert(node_after >= 0);
-    assert(node_after < list->capacity);
+    assert(idx_before >= 0);
+    assert(idx_before < list->capacity);
+    assert(idx_after >= 0);
+    assert(idx_after < list->capacity);
 
-    virtual_ptr insertion_node = getFreeSpace(list);
+    size_t insertable_node = getFreeNode(list);
 
-    initNode(list, insertion_node, node_before, node_after, value);
-    referTo(node_before).next = insertion_node;
-    referTo(node_after).prev = insertion_node;
+    initNode(list, insertable_node, idx_before, idx_after, value);
+    referTo(idx_before).next = insertable_node;
+    referTo(idx_after).prev = insertable_node;
 
     ++list->size;
 
+    determineNodeStatus_Assistent(list, insertable_node);
+
     LIST_ASSERT(list);
 
-    determineNodeStatus_Assistent(list, insertion_node);
-
-    return insertion_node;
+    return insertable_node;
 }
 
 void pushBackList(List* list, elem_t value)
@@ -162,42 +156,42 @@ void pushForwardList(List* list, elem_t value)
     referTo(list->head).prev = 0;
 }
 
-void insertAfter(List* list, size_t pos_after, elem_t value)
+void insertAfter(List* list, size_t number_after, elem_t value)
 {   
     // printf("i am here. pos = %zu\n", pos_after);
-    virtual_ptr node_after = getVirtualAddressByPos(list, pos_after);
+    size_t idx_after = getIndexByNumber(list, number_after);
 
-    insertBetween(list, node_after, referTo(node_after).next, value);
+    insertBetween(list, idx_after, referTo(idx_after).next, value);
 }
 
-void insertBefore(List* list, size_t pos_before, elem_t value)
+void insertBefore(List* list, size_t number_before, elem_t value)
 {
-    virtual_ptr node_before = list->is_optimized ? pos_before : getVirtualAddressByPos(list, pos_before);
+    size_t node_before = list->is_optimized ? number_before : getIndexByNumber(list, number_before);
     
     insertBetween(list, referTo(node_before).prev, node_before, value);
 }
 
-void _service_delete_(List* list, virtual_ptr deletable_node)
+void service_delete(List* list, size_t deletable_idx)
 {
     LIST_ASSERT(list);
-    assert(deletable_node > 0);
-    assert(deletable_node < list->capacity);
+    assert(deletable_idx > 0);
+    assert(deletable_idx < list->capacity);
 
-    referTo(referTo(deletable_node).next).prev = referTo(deletable_node).prev;
-    referTo(referTo(deletable_node).prev).next = referTo(deletable_node).next;
+    referTo(referTo(deletable_idx).next).prev = referTo(deletable_idx).prev;
+    referTo(referTo(deletable_idx).prev).next = referTo(deletable_idx).next;
 
-    freeMemory(list, deletable_node);
+    freeNode(list, deletable_idx);
 
     --list->size;
 
     LIST_ASSERT(list);
 }
 
-void deleteNode(List* list, size_t pos)
+void deleteNode(List* list, size_t number)
 {   
-    assert(pos < list->size + 1);
+    assert(number < list->size + 1);
 
-    virtual_ptr deletable_node = getVirtualAddressByPos(list, pos);
+    size_t deletable_node = getIndexByNumber(list, number);
 
     if (deletable_node == list->head)
     {
@@ -207,45 +201,45 @@ void deleteNode(List* list, size_t pos)
     {
         list->tail = referTo(deletable_node).prev;
     }
-    _service_delete_(list, deletable_node);
+    service_delete(list, deletable_node);
 }
 
 void deleteHead(List* list)
 {
-    virtual_ptr deletable_node = list->head;
+    size_t deletable_idx = list->head;
 
-    list->head = referTo(deletable_node).next;
+    list->head = referTo(deletable_idx).next;
 
-    _service_delete_(list, deletable_node);
+    service_delete(list, deletable_idx);
 }
 
 void deleteTail(List* list)
 {
-    virtual_ptr deletable_node = list->tail;
+    size_t deletable_idx = list->tail;
 
-    list->tail = referTo(deletable_node).prev;
+    list->tail = referTo(deletable_idx).prev;
 
-    _service_delete_(list, deletable_node);
+    service_delete(list, deletable_idx);
 }
 
-void optimizeList(List* list)
+void slowOptimizeList(List* list)
 {
-	Node* optimized_buffer = (Node*)calloc(list->size + 1, sizeof(Node));
-    virtual_ptr cur_node = list->head;
-	for (size_t i = 0; i < list->size && referTo(cur_node).next > 0; ++i)
+    Node* optimized_buffer = (Node*)calloc(list->size + 1, sizeof(Node));
+    size_t cur_node = list->head;
+    for (size_t i = 0; i < list->size && referTo(cur_node).next > 0; ++i)
     {
         optimized_buffer[i] = referTo(cur_node);
     }
-    for (size_t pos = 0; pos < list->size; ++pos)
-    {
-        list->buffer[pos + 1] = optimized_buffer[pos];
-    }
+    memcpy(list->buffer + 1, optimized_buffer, sizeof(Node) * list->size);
+    // for (size_t pos = 0; pos < list->size; ++pos)
+    // {
+    //     list->buffer[pos + 1] = optimized_buffer[pos];
+    // }
 
-    list->free = list->size + 1;
-    for (size_t free_pos = list->free; free_pos < list->capacity - 1; ++free_pos)
+    list->free_head = list->size + 1;
+    for (size_t free_idx = list->free_head; free_idx < list->capacity - 1; ++free_idx)
     {
-        initNode(list, free_pos, -1, free_pos + 1, NAN);
-        referTo(free_pos).status = FREE;
+        initNode(list, free_idx, -1, free_idx + 1, FREE);
     }
     initNode(list, list->capacity - 1, -1, 0, NAN);
     referTo(list->capacity - 1).status = FREE;
@@ -260,8 +254,7 @@ void optimizeList(List* list)
 
 void showListConsole(List* list, const char* reason)
 {
-    virtual_ptr cur_node = list->head;
-    Node node = list->buffer[cur_node];
+    size_t cur_idx = list->head;
     printf("List: \n");
     showNode(list, list->head, "Head");
     showNode(list, list->tail, "Tail");
@@ -269,14 +262,14 @@ void showListConsole(List* list, const char* reason)
     for (size_t i = 0; i < list->size; ++i)
     {   
         printf("Logic number #%zu|", i + 1);
-        showNode(list, cur_node, reason);
-        cur_node = referTo(cur_node).next;
+        showNode(list, cur_idx, reason);
+        cur_idx = referTo(cur_idx).next;
     }
 }
 
-void showNode(List* list, virtual_ptr node, const char* reason)
+void showNode(List* list, size_t idx, const char* reason)
 {
-    printf("|%s|Next: %zu|Value: %lg|Prev: %zu|Virt address: %zu|\n", reason, referTo(node).next, referTo(node).value, referTo(node).prev, node);
+    printf("|%s|Next: %zu|Value: %lg|Prev: %zu|Virt address: %zu|\n", reason, referTo(idx).next, referTo(idx).value, referTo(idx).prev, idx);
 }
 
 void showBuffer(List* list)
@@ -303,50 +296,28 @@ List* deleteList(List* list)
     return NULL;
 }
 
-void determineNodeStatus_Assistent(List* list, virtual_ptr cur_node)
+void determineNodeStatus_Assistent(List* list, size_t cur_idx)
 {
-    if (referTo(referTo(cur_node).next).prev != cur_node ||
-        referTo(referTo(cur_node).prev).next != cur_node ||
-        referTo(cur_node).value == NAN)
+    if (referTo(referTo(cur_idx).next).prev != cur_idx ||
+        referTo(referTo(cur_idx).prev).next != cur_idx ||
+        referTo(cur_idx).value == NAN)
     {
-        referTo(cur_node).status = BROKEN;
+        referTo(cur_idx).status = BROKEN;
     }
-    else  referTo(cur_node).status = OK;
-}
-
-void determineNodesStatuses_Cheif_Please(List* list)
-{
-    virtual_ptr cur_node = list->head;
-
-    if (referTo(referTo(cur_node).next).prev != cur_node || referTo(cur_node).value == NAN)
-    {
-        referTo(cur_node).status = BROKEN;
-    }
-    else  referTo(cur_node).status = OK;
-
-    for (size_t i = 0; i < list->size && cur_node != list->tail; ++i)
-    {
-        determineNodeStatus_Assistent(list, cur_node);
-    }
-    cur_node = list->tail;
-    if (referTo(referTo(cur_node).prev).next != cur_node || referTo(cur_node).value == NAN)
-    {
-        referTo(cur_node).status = BROKEN;
-    }
-    else  referTo(cur_node).status = OK;
+    else  referTo(cur_idx).status = OK;
 }
 
 bool assertList(List* list)
 {   
-    //Должна смотреть в узлах только на поля status, написать отдельную ф-ю, определяющую статус ноды
     if (list->capacity < 0 || list->size < 0 || list->size + 1 > list->capacity)
     {
         return false;
     }
     for (size_t i = 0; i < list->capacity; ++i)
     {
-        if (referTo(i).next < 0 || referTo(i).prev < 0)
+        if (referTo(i).status == BROKEN)
         {
+            printf("Node with idx = %zu is died\n", i);
             return false;
         }
     }
@@ -364,17 +335,17 @@ void logicListDump(List* list, const char* filename, const char* graph_filename)
 
     fprintf(graph_file, "\"%p\" [color=\"#000080\", fillcolor=\"gray\", label=\"{FICT NODE}\"];\n", list->buffer + 0);
 
-    virtual_ptr cur_node = list->head;
-    for (size_t i = 0; i < list->size && cur_node > 0; ++i)
+    size_t cur_idx = list->head;
+    for (size_t i = 0; i < list->size && cur_idx > 0; ++i)
     {
-        fprintf(graph_file, "\"%p\" [label=\"{%lg|{%zu|%zu|%zu}}\", ", &referTo(cur_node), 
-                referTo(cur_node).value, referTo(cur_node).prev, cur_node, referTo(cur_node).next); // <-- label printing
+        fprintf(graph_file, "\"%p\" [label=\"{value: %lg|{prev: %zu|cur: %zu|next: %zu}}\", ", &referTo(cur_idx), 
+                referTo(cur_idx).value, referTo(cur_idx).prev, cur_idx, referTo(cur_idx).next); // <-- label printing
         
-        fprintf(graph_file, "fillcolor=%s]\n", STATUS_COLORS[(int)referTo(cur_node).status]); // <-- color printing
+        fprintf(graph_file, "fillcolor=%s]\n", STATUS_COLORS[(int)referTo(cur_idx).status]); // <-- color printing
 
-        fprintf(graph_file, "\"%p\"->\"%p\";\n", &referTo(cur_node), &referTo(referTo(cur_node).prev)); // <-- point to prev
-        fprintf(graph_file, "\"%p\"->\"%p\";\n", &referTo(cur_node), &referTo(referTo(cur_node).next)); // <-- point to next
-        cur_node = referTo(cur_node).next;
+        fprintf(graph_file, "\"%p\"->\"%p\";\n", &referTo(cur_idx), &referTo(referTo(cur_idx).prev)); // <-- point to prev
+        fprintf(graph_file, "\"%p\"->\"%p\";\n", &referTo(cur_idx), &referTo(referTo(cur_idx).next)); // <-- point to next
+        cur_idx = referTo(cur_idx).next;
     }
     fprintf(graph_file, "}");
 
@@ -388,28 +359,44 @@ void realListDump(List* list, const char* filename, const char* graph_filename)
     FILE* graph_file = fopen(filename, "w");
 
     fprintf(graph_file, "digraph G{\n");
-    fprintf(graph_file, "node [shape=\"record\", style=\"filled\", color=\"#008000\"];\n");
+    fprintf(graph_file, "node [shape=\"record\", style=\"filled\", color=\"gray\"];\n");
 
-    for (virtual_ptr cur_node = 1; cur_node < list->capacity; ++cur_node)
+    fprintf(graph_file, "\"%p\" [color=\"gray\", fillcolor=\"gray\", label=\"{FICT NODE}\"];\n", list->buffer + 0);
+
+    //Just fucking setting my nu(o)des
+    for (size_t cur_idx = 1; cur_idx < list->capacity - 1; ++cur_idx)
     {
-        fprintf(graph_file, "\"%p\" [color=\"%s\", label=\"{%lg|{%d|%zu|%zu}}\"];\n", &referTo(cur_node),
-        STATUS_COLORS[(int)referTo(cur_node).status], referTo(cur_node).value, referTo(cur_node).prev, cur_node, 
-        referTo(cur_node).next);
-        fprintf(graph_file, "edge[color=black]\n\"%p\"->\"%p\";\n", &referTo(cur_node), &referTo(cur_node + 1));
+        fprintf(graph_file, "\"%p\" [label=\"{%lg|{%d|%zu|%zu}}\", ", &referTo(cur_idx),           // <-- label printing
+                referTo(cur_idx).value, referTo(cur_idx).prev, cur_idx, referTo(cur_idx).next); 
+        fprintf(graph_file, "fillcolor=%s]\n", STATUS_COLORS[(int)referTo(cur_idx).status]);       // <-- color printing
     }
+    //For last
+    fprintf(graph_file, "\"%p\" [label=\"{%lg|{%d|%zu|%zu}}\", ", &referTo(list->capacity - 1),
+            referTo(list->capacity - 1).value, referTo(list->capacity - 1).prev, list->capacity -1, referTo(list->capacity).next); 
+    fprintf(graph_file, "fillcolor=%s]\n", STATUS_COLORS[(int)referTo(list->capacity - 1).status]);
 
-    fprintf(graph_file, "\"HEAD\" [color=\"#000080\", fillcolor=\"gray\", label=\"{FICT NODE}\"];\n");
-    fprintf(graph_file, "edge[color=black]\n\"FICT NODE\"->\"%p\"", &referTo(list->head));
+    //Just fucking physical pointers
+    for (size_t cur_idx = 0; cur_idx < list->capacity - 1; ++cur_idx)
+    {
+        fprintf(graph_file, "edge[color=gray]\n\"%p\"->\"%p\";\n", &referTo(cur_idx), &referTo(cur_idx) + 1); 
+    }
+    fprintf(graph_file, "edge[color=gray]\n\"%p\"->\"%p\";\n", &referTo(list->capacity - 1), list->buffer + 0); 
 
-    virtual_ptr cur_node = list->head;
+
+    //Just fucking logic pointers
     size_t i = 1;
-    while (cur_node != list->tail && i < list->size + 1)
+    size_t cur_idx = list->head;
+    fprintf(graph_file, "edge[color=black]\"%p\"->\"%p\"", list->buffer + 0, &referTo(list->head));
+    while (i++ < list->size + 1)
     {
-        fprintf(graph_file, "edge[color=black]\n\"%p\"->\"%p\";\n", &referTo(cur_node), &referTo(referTo(cur_node).next));
-        cur_node = referTo(cur_node).next;
+        if (cur_idx != list->tail)
+        {
+            fprintf(graph_file, "edge[color=black]\n\"%p\"->\"%p\";\n", &referTo(cur_idx), &referTo(referTo(cur_idx).next));
+        }
+        cur_idx = referTo(cur_idx).next;
     }
 
-    fprintf(graph_file, "\"%p\"->\"HEAD\"", &referTo(list->tail));
+    fprintf(graph_file, "edge[color=black]\"%p\"->\"%p\"", &referTo(list->tail), list->buffer + 0);
 
     fprintf(graph_file, "}");
 
@@ -418,10 +405,10 @@ void realListDump(List* list, const char* filename, const char* graph_filename)
     drawGraph(filename, graph_filename);
 }
 
-
 void drawGraph(const char* filename, const char* graph_filename)
 {
-    char* command = (char*)calloc(128, sizeof(char));
+    char command[128];
+
     size_t i = 0;
     while (DOT_COMMAND[i] != '\0')
     {
@@ -445,6 +432,4 @@ void drawGraph(const char* filename, const char* graph_filename)
     }
     system(command);
 
-    free(command);
 }
-
