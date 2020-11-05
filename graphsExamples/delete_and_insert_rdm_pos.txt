@@ -1,0 +1,197 @@
+digraph G{
+node [shape="record", style="filled", color="#008000"];
+"0xacd2c0" [color="green", label="{10|{2|1|0}}"];
+edge[color=black]
+"0xacd2c0"->"0xacd2e0";
+"0xacd2e0" [color="green", label="{11|{3|2|1}}"];
+edge[color=black]
+"0xacd2e0"->"0xacd300";
+"0xacd300" [color="green", label="{12|{4|3|2}}"];
+edge[color=black]
+"0xacd300"->"0xacd320";
+"0xacd320" [color="green", label="{13|{5|4|3}}"];
+edge[color=black]
+"0xacd320"->"0xacd340";
+"0xacd340" [color="green", label="{14|{6|5|4}}"];
+edge[color=black]
+"0xacd340"->"0xacd360";
+"0xacd360" [color="green", label="{15|{7|6|5}}"];
+edge[color=black]
+"0xacd360"->"0xacd380";
+"0xacd380" [color="green", label="{16|{9|7|6}}"];
+edge[color=black]
+"0xacd380"->"0xacd3a0";
+"0xacd3a0" [color="green", label="{3000|{12|8|14}}"];
+edge[color=black]
+"0xacd3a0"->"0xacd3c0";
+"0xacd3c0" [color="green", label="{18|{10|9|7}}"];
+edge[color=black]
+"0xacd3c0"->"0xacd3e0";
+"0xacd3e0" [color="green", label="{19|{11|10|9}}"];
+edge[color=black]
+"0xacd3e0"->"0xacd400";
+"0xacd400" [color="green", label="{20|{13|11|10}}"];
+edge[color=black]
+"0xacd400"->"0xacd420";
+"0xacd420" [color="green", label="{2000|{17|12|8}}"];
+edge[color=black]
+"0xacd420"->"0xacd440";
+"0xacd440" [color="green", label="{22|{15|13|11}}"];
+edge[color=black]
+"0xacd440"->"0xacd460";
+"0xacd460" [color="green", label="{4000|{8|14|18}}"];
+edge[color=black]
+"0xacd460"->"0xacd480";
+"0xacd480" [color="green", label="{24|{16|15|13}}"];
+edge[color=black]
+"0xacd480"->"0xacd4a0";
+"0xacd4a0" [color="green", label="{25|{18|16|15}}"];
+edge[color=black]
+"0xacd4a0"->"0xacd4c0";
+"0xacd4c0" [color="green", label="{1000|{22|17|12}}"];
+edge[color=black]
+"0xacd4c0"->"0xacd4e0";
+"0xacd4e0" [color="green", label="{5000|{14|18|16}}"];
+edge[color=black]
+"0xacd4e0"->"0xacd500";
+"0xacd500" [color="green", label="{28|{20|19|21}}"];
+edge[color=black]
+"0xacd500"->"0xacd520";
+"0xacd520" [color="green", label="{29|{0|20|19}}"];
+edge[color=black]
+"0xacd520"->"0xacd540";
+"0xacd540" [color="green", label="{6000|{19|21|22}}"];
+edge[color=black]
+"0xacd540"->"0xacd560";
+"0xacd560" [color="green", label="{7000|{21|22|17}}"];
+edge[color=black]
+"0xacd560"->"0xacd580";
+"0xacd580" [color="white", label="{nan|{-1|23|24}}"];
+edge[color=black]
+"0xacd580"->"0xacd5a0";
+"0xacd5a0" [color="white", label="{nan|{-1|24|25}}"];
+edge[color=black]
+"0xacd5a0"->"0xacd5c0";
+"0xacd5c0" [color="white", label="{nan|{-1|25|26}}"];
+edge[color=black]
+"0xacd5c0"->"0xacd5e0";
+"0xacd5e0" [color="white", label="{nan|{-1|26|27}}"];
+edge[color=black]
+"0xacd5e0"->"0xacd600";
+"0xacd600" [color="white", label="{nan|{-1|27|28}}"];
+edge[color=black]
+"0xacd600"->"0xacd620";
+"0xacd620" [color="white", label="{nan|{-1|28|29}}"];
+edge[color=black]
+"0xacd620"->"0xacd640";
+"0xacd640" [color="white", label="{nan|{-1|29|30}}"];
+edge[color=black]
+"0xacd640"->"0xacd660";
+"0xacd660" [color="white", label="{nan|{-1|30|31}}"];
+edge[color=black]
+"0xacd660"->"0xacd680";
+"0xacd680" [color="white", label="{nan|{-1|31|32}}"];
+edge[color=black]
+"0xacd680"->"0xacd6a0";
+"0xacd6a0" [color="white", label="{nan|{-1|32|33}}"];
+edge[color=black]
+"0xacd6a0"->"0xacd6c0";
+"0xacd6c0" [color="white", label="{nan|{-1|33|34}}"];
+edge[color=black]
+"0xacd6c0"->"0xacd6e0";
+"0xacd6e0" [color="white", label="{nan|{-1|34|35}}"];
+edge[color=black]
+"0xacd6e0"->"0xacd700";
+"0xacd700" [color="white", label="{nan|{-1|35|36}}"];
+edge[color=black]
+"0xacd700"->"0xacd720";
+"0xacd720" [color="white", label="{nan|{-1|36|37}}"];
+edge[color=black]
+"0xacd720"->"0xacd740";
+"0xacd740" [color="white", label="{nan|{-1|37|38}}"];
+edge[color=black]
+"0xacd740"->"0xacd760";
+"0xacd760" [color="white", label="{nan|{-1|38|39}}"];
+edge[color=black]
+"0xacd760"->"0xacd780";
+"0xacd780" [color="white", label="{nan|{-1|39|40}}"];
+edge[color=black]
+"0xacd780"->"0xacd7a0";
+"0xacd7a0" [color="white", label="{nan|{-1|40|41}}"];
+edge[color=black]
+"0xacd7a0"->"0xacd7c0";
+"0xacd7c0" [color="white", label="{nan|{-1|41|42}}"];
+edge[color=black]
+"0xacd7c0"->"0xacd7e0";
+"0xacd7e0" [color="white", label="{nan|{-1|42|43}}"];
+edge[color=black]
+"0xacd7e0"->"0xacd800";
+"0xacd800" [color="white", label="{nan|{-1|43|44}}"];
+edge[color=black]
+"0xacd800"->"0xacd820";
+"0xacd820" [color="white", label="{nan|{-1|44|45}}"];
+edge[color=black]
+"0xacd820"->"0xacd840";
+"0xacd840" [color="white", label="{nan|{-1|45|46}}"];
+edge[color=black]
+"0xacd840"->"0xacd860";
+"0xacd860" [color="white", label="{nan|{-1|46|47}}"];
+edge[color=black]
+"0xacd860"->"0xacd880";
+"0xacd880" [color="white", label="{nan|{-1|47|48}}"];
+edge[color=black]
+"0xacd880"->"0xacd8a0";
+"0xacd8a0" [color="white", label="{nan|{-1|48|49}}"];
+edge[color=black]
+"0xacd8a0"->"0xacd8c0";
+"0xacd8c0" [color="white", label="{nan|{-1|49|50}}"];
+edge[color=black]
+"0xacd8c0"->"0xacd8e0";
+"0xacd8e0" [color="white", label="{nan|{-1|50|0}}"];
+edge[color=black]
+"0xacd8e0"->"0xacd900";
+"HEAD" [color="#000080", fillcolor="gray", label="{FICT NODE}"];
+edge[color=black]
+"FICT NODE"->"0xacd520"edge[color=black]
+"0xacd520"->"0xacd500";
+edge[color=black]
+"0xacd500"->"0xacd540";
+edge[color=black]
+"0xacd540"->"0xacd560";
+edge[color=black]
+"0xacd560"->"0xacd4c0";
+edge[color=black]
+"0xacd4c0"->"0xacd420";
+edge[color=black]
+"0xacd420"->"0xacd3a0";
+edge[color=black]
+"0xacd3a0"->"0xacd460";
+edge[color=black]
+"0xacd460"->"0xacd4e0";
+edge[color=black]
+"0xacd4e0"->"0xacd4a0";
+edge[color=black]
+"0xacd4a0"->"0xacd480";
+edge[color=black]
+"0xacd480"->"0xacd440";
+edge[color=black]
+"0xacd440"->"0xacd400";
+edge[color=black]
+"0xacd400"->"0xacd3e0";
+edge[color=black]
+"0xacd3e0"->"0xacd3c0";
+edge[color=black]
+"0xacd3c0"->"0xacd380";
+edge[color=black]
+"0xacd380"->"0xacd360";
+edge[color=black]
+"0xacd360"->"0xacd340";
+edge[color=black]
+"0xacd340"->"0xacd320";
+edge[color=black]
+"0xacd320"->"0xacd300";
+edge[color=black]
+"0xacd300"->"0xacd2e0";
+edge[color=black]
+"0xacd2e0"->"0xacd2c0";
+"0xacd2c0"->"HEAD"}
