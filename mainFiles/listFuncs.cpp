@@ -225,12 +225,24 @@ void deleteTail(List* list)
 void slowOptimizeList(List* list)
 {
     Node* optimized_buffer = (Node*)calloc(list->size + 1, sizeof(Node));
-    size_t cur_node = list->head;
-    for (size_t i = 0; i < list->size && referTo(cur_node).next > 0; ++i)
+    size_t cur_idx = list->head;
+    for (size_t i = 0; i < list->size && referTo(cur_idx).next > 0; ++i)
     {
-        optimized_buffer[i] = referTo(cur_node);
+        optimized_buffer[i] = referTo(cur_idx);
+        cur_idx = referTo(cur_idx).next;
     }
     memcpy(list->buffer + 1, optimized_buffer, sizeof(Node) * list->size);
+
+    initNode(list, 0, 1, list->size, NAN); //<-- init fict Node
+    for (size_t i = 1; i < list->size; ++i)
+    {
+        referTo(i).next = i + 1;
+        referTo(i).prev = i - 1;
+        referTo(i).status = OK;
+    }
+    initNode(list, list->size, 0, list->size - 1, referTo(list->size).value); //<-- init tail
+    referTo(list->size).status = OK;
+
     // for (size_t pos = 0; pos < list->size; ++pos)
     // {
     //     list->buffer[pos + 1] = optimized_buffer[pos];
@@ -372,7 +384,7 @@ void realListDump(List* list, const char* filename, const char* graph_filename)
     }
     //For last
     fprintf(graph_file, "\"%p\" [label=\"{%lg|{%d|%zu|%zu}}\", ", &referTo(list->capacity - 1),
-            referTo(list->capacity - 1).value, referTo(list->capacity - 1).prev, list->capacity -1, 0); 
+            referTo(list->capacity - 1).value, referTo(list->capacity - 1).prev, list->capacity - 1, referTo(list->capacity - 1).next); 
     fprintf(graph_file, "fillcolor=%s]\n", STATUS_COLORS[(int)referTo(list->capacity - 1).status]);
 
     //Just fucking physical pointers
@@ -407,7 +419,7 @@ void realListDump(List* list, const char* filename, const char* graph_filename)
 
 void drawGraph(const char* filename, const char* graph_filename)
 {
-    char command[128];
+    char* command = (char*)calloc(96, sizeof(char));
 
     size_t i = 0;
     while (DOT_COMMAND[i] != '\0')
@@ -430,6 +442,8 @@ void drawGraph(const char* filename, const char* graph_filename)
         command[i] = graph_filename[j++];
         ++i;
     }
+    
     system(command);
 
+    free(command);
 }
