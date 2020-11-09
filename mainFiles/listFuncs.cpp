@@ -110,12 +110,12 @@ size_t getIndexByNumber(List* list, size_t number)
 
 size_t insertBetween(List* list, size_t idx_before, size_t idx_after, elem_t value)
 {   
-    //!assert(list_ok(list))
     LIST_ASSERT(list);
     assert(idx_before >= 0);
     assert(idx_before < list->capacity);
     assert(idx_after >= 0);
     assert(idx_after < list->capacity);
+    assert(referTo(idx_after).status != BROKEN);
 
     size_t insertable_node = getFreeNode(list);
 
@@ -158,17 +158,30 @@ void pushForwardList(List* list, elem_t value)
 
 void insertAfter(List* list, size_t number_after, elem_t value)
 {   
-    // printf("i am here. pos = %zu\n", pos_after);
     size_t idx_after = getIndexByNumber(list, number_after);
 
     insertBetween(list, idx_after, referTo(idx_after).next, value);
 }
 
+size_t realInsertAfter(List* list, size_t idx_after, elem_t value)
+{   
+    assert(referTo(idx_after).status != FREE);
+
+    return insertBetween(list, idx_after, referTo(idx_after).next, value);
+}
+
 void insertBefore(List* list, size_t number_before, elem_t value)
 {
-    size_t node_before = list->is_optimized ? number_before : getIndexByNumber(list, number_before);
+    size_t idx_before = getIndexByNumber(list, number_before);
     
-    insertBetween(list, referTo(node_before).prev, node_before, value);
+    insertBetween(list, referTo(idx_before).prev, idx_before, value);
+}
+
+size_t realInsertBefore(List* list, size_t idx_before, elem_t value)
+{    
+    assert(referTo(idx_before).status != FREE);
+
+    return insertBetween(list, referTo(idx_before).prev, idx_before, value);
 }
 
 void service_delete(List* list, size_t deletable_idx)
@@ -189,6 +202,7 @@ void service_delete(List* list, size_t deletable_idx)
 
 void deleteNode(List* list, size_t number)
 {   
+    assert(number > 0);
     assert(number < list->size + 1);
 
     size_t deletable_node = getIndexByNumber(list, number);
@@ -243,11 +257,6 @@ void slowOptimizeList(List* list)
     initNode(list, list->size, 0, list->size - 1, referTo(list->size).value); //<-- init tail
     referTo(list->size).status = OK;
 
-    // for (size_t pos = 0; pos < list->size; ++pos)
-    // {
-    //     list->buffer[pos + 1] = optimized_buffer[pos];
-    // }
-
     list->free_head = list->size + 1;
     for (size_t free_idx = list->free_head; free_idx < list->capacity - 1; ++free_idx)
     {
@@ -292,6 +301,13 @@ void showBuffer(List* list)
     {
         printf("Next: %zu|Value: %lg|Prev: %zu|Virt address: %zu\n", referTo(i).next, referTo(i).value, referTo(i).prev, i);
     }
+}
+
+void clearList(List* list)
+{
+    size_t capacity = list->capacity - 1;
+    destructList(list);
+    constructList(list, capacity - 1);
 }
 
 void destructList(List* list)
@@ -378,21 +394,21 @@ void realListDump(List* list, const char* filename, const char* graph_filename)
     //Just fucking setting my nu(o)des
     for (size_t cur_idx = 1; cur_idx < list->capacity - 1; ++cur_idx)
     {
-        fprintf(graph_file, "\"%p\" [label=\"{%lg|{%d|%zu|%zu}}\", ", &referTo(cur_idx),           // <-- label printing
+        fprintf(graph_file, "\"%p\" [label=\"{val: %lg|{prev: %d|cur: %zu|next: %zu}}\", ", &referTo(cur_idx),           // <-- label printing
                 referTo(cur_idx).value, referTo(cur_idx).prev, cur_idx, referTo(cur_idx).next); 
         fprintf(graph_file, "fillcolor=%s]\n", STATUS_COLORS[(int)referTo(cur_idx).status]);       // <-- color printing
     }
     //For last
-    fprintf(graph_file, "\"%p\" [label=\"{%lg|{%d|%zu|%zu}}\", ", &referTo(list->capacity - 1),
+    fprintf(graph_file, "\"%p\" [label=\"{val: %lg|{prev: %d|cur: %zu|next: %zu}}\", ", &referTo(list->capacity - 1),
             referTo(list->capacity - 1).value, referTo(list->capacity - 1).prev, list->capacity - 1, referTo(list->capacity - 1).next); 
     fprintf(graph_file, "fillcolor=%s]\n", STATUS_COLORS[(int)referTo(list->capacity - 1).status]);
 
     //Just fucking physical pointers
     for (size_t cur_idx = 0; cur_idx < list->capacity - 1; ++cur_idx)
     {
-        fprintf(graph_file, "edge[color=gray]\n\"%p\"->\"%p\";\n", &referTo(cur_idx), &referTo(cur_idx) + 1); 
+        fprintf(graph_file, "edge[color=red]\n\"%p\"->\"%p\";\n", &referTo(cur_idx), &referTo(cur_idx) + 1); 
     }
-    fprintf(graph_file, "edge[color=gray]\n\"%p\"->\"%p\";\n", &referTo(list->capacity - 1), list->buffer + 0); 
+    fprintf(graph_file, "edge[color=red]\n\"%p\"->\"%p\";\n", &referTo(list->capacity - 1), list->buffer + 0); 
 
 
     //Just fucking logic pointers
@@ -446,4 +462,117 @@ void drawGraph(const char* filename, const char* graph_filename)
     system(command);
 
     free(command);
+}
+
+int pushUnitTests()
+{
+    List list = {};
+    constructList(&list, 20);
+
+    for (size_t i = 8; i > 0; --i)
+    {
+        pushForwardList(&list, i);
+    }
+
+    for (size_t i = 9; i < 15; ++i)
+    {
+        pushBackList(&list, i);
+    }
+    showListConsole(&list, "push");
+    logicListDump(&list, "push_logic.txt", "push_logic_graph.jpg");
+    realListDump(&list, "push_real.txt", "push_real_graph.jpg");
+
+    size_t idx = list.head;
+    for (size_t i = 1; i < 15; ++i)
+    {
+        if (list.buffer[idx].value != i)
+        {   
+            printf("[idx] = %lg, i = %zu\n", list.buffer[idx].value, i);
+            printf("ERROR PUSH UNIT TEST\n");
+            return 1;
+        }
+        idx = list.buffer[idx].next;
+    }
+    printf("push unit test passed\n");
+
+    return 0;
+}
+
+int check(List* list, size_t correct_values[], size_t size, const char* reason)
+{
+    size_t idx = list->head;
+    for (size_t i = 0; i < size; ++i)
+    {
+        if (list->buffer[idx].value != correct_values[i])
+        {   
+            printf("[idx] = %lg, correct_values[i] = %zu\n", list->buffer[idx].value, correct_values[i]);
+            printf("ERROR %s UNIT TEST\n", reason);
+            return 1;
+        }
+        idx = list->buffer[idx].next;
+    }
+
+    return 0;
+}
+
+int insertUnitTest()
+{
+    List list = {};
+    constructList(&list, 30);
+
+    size_t correct_values[] = {1, 2, 3, 4, 400, 401, 402, 5};
+
+    for (size_t i = 0; i < 5; ++i)
+    {
+        pushBackList(&list, i + 1);
+    }
+    size_t cur_idx = getIndexByNumber(&list, 4);
+    for (size_t i = 0; i < 3; ++i)
+    {
+        cur_idx = realInsertAfter(&list, cur_idx, 400 + i);
+    }
+    showListConsole(&list, "insert");
+    logicListDump(&list, "insert_logic.txt", "insert_logic_graph.jpg");
+    realListDump(&list, "insert_real.txt", "insert_real_graph.jpg");
+
+    if (check(&list, correct_values, 8, "insert") != 0)
+    {
+        return 1;
+    }
+
+    printf("insert unit test passed\n");  
+    return 0;
+}
+
+int deleteUnitTests()
+{
+    List list = {};
+    constructList(&list, 5);
+    size_t correct_values[] = {1, 2, 4, 5};
+
+    for (size_t i = 1; i <= 5; ++i)
+    {
+        pushBackList(&list, i);
+    }
+    size_t idx = getIndexByNumber(&list, 3);
+    service_delete(&list, idx);
+
+    showListConsole(&list, "delete");
+    logicListDump(&list, "delete_logic.txt", "delete_logic_graph.jpg");
+    realListDump(&list, "delete_real.txt", "delete_real_graph.jpg");
+    
+    if (check(&list, correct_values, 4, "delete") != 0)
+    {
+        return 1;
+    }
+
+    printf("delete unit tests passed\n");
+    return 0;
+}
+
+void unitTests()
+{
+    pushUnitTests();
+    insertUnitTest();
+    deleteUnitTests();
 }

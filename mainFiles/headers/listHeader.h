@@ -79,7 +79,11 @@ void pushForwardList(List* list, elem_t value);
 
 void insertAfter(List* list, size_t number_after, elem_t value);
 
+size_t realInsertAfter(List* list, size_t idx_after, elem_t value);
+
 void insertBefore(List* list, size_t number_before, elem_t value);
+
+size_t realInsertBefore(List* list, size_t idx_before, elem_t value);
 
 void service_delete(List* list, size_t deletable_idx);
 
@@ -113,3 +117,4 @@ void drawGraph(const char* filename, const char* graph_filename);
 
 bool assertList(List* list);
 
+void unitTests();
